@@ -1,7 +1,8 @@
 streamlit
 openai
-pillow
 pdfplumber
 python-docx
-pytesseract
-
+Pillow
+easyocr
+torch
+opencv-python-headless
