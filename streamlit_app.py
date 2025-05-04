@@ -1,6 +1,5 @@
-# Versão ajustada com foco apenas nas mudanças solicitadas pelo usuário
+# Versão ajustada com suporte à nova API OpenAI >= 1.0.0
 import streamlit as st
-import openai
 import os
 from PIL import Image
 import time
@@ -9,9 +8,7 @@ import pytesseract
 import pdfplumber
 import docx
 from io import BytesIO
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Users\Gerlany\OneDrive\I9 Chatbot\tesseract-5.5.0"
-
+from openai import OpenAI
 
 # Configurações iniciais
 st.set_page_config(
@@ -113,13 +110,14 @@ def gerar_resposta(pergunta, contexto):
 
     try:
         time.sleep(1)
-        resposta = openai.ChatCompletion.create(
+        client = OpenAI(api_key=openai.api_key)
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=mensagens,
             temperature=0.7,
             max_tokens=1000
         )
-        return resposta["choices"][0]["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
         return f"Erro ao gerar resposta: {str(e)}"
 
@@ -134,6 +132,7 @@ if os.path.exists(LOGO_BOT_PATH):
 
 api_key = st.sidebar.text_input("🔑 Chave API OpenAI", type="password")
 if api_key:
+    import openai
     openai.api_key = api_key
     if st.sidebar.button("🧹 Limpar Histórico do Chat"):
         limpar_historico()
