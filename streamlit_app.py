@@ -1,14 +1,15 @@
-# Versão ajustada com suporte à nova API OpenAI >= 1.0.0
+# Versão com suporte a OCR no Streamlit Cloud via EasyOCR
 import streamlit as st
 import os
 from PIL import Image
 import time
 import json
-import pytesseract
 import pdfplumber
 import docx
 from io import BytesIO
 from openai import OpenAI
+import easyocr
+import numpy as np
 
 # Configurações iniciais
 st.set_page_config(
@@ -64,8 +65,14 @@ def extrair_texto_arquivo(arquivo):
         doc = docx.Document(arquivo)
         return "\n".join([p.text for p in doc.paragraphs])
     elif nome.endswith((".png", ".jpg", ".jpeg")):
-        image = Image.open(arquivo)
-        return pytesseract.image_to_string(image)
+        try:
+            image = Image.open(arquivo).convert("RGB")
+            img_array = np.array(image)
+            reader = easyocr.Reader(['pt', 'en'], gpu=False)
+            results = reader.readtext(img_array)
+            return "\n".join([r[1] for r in results])
+        except Exception as e:
+            return f"[Erro ao usar EasyOCR: {str(e)}]"
     return ""
 
 def dividir_texto(texto, max_tokens=800):
